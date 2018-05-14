@@ -63,8 +63,7 @@ class SimpleConvnet:
         self._flat = tf.reshape(self._res_module2, [-1, 6272], name = "flat")
         # self._op = self.feed_forward(self._flat, name = "op", inp_channel = 6272, op_channel = 26)
         self._fc1 = self.feed_forward(self._flat, name = "op", inp_channel = 6272, op_channel = self._n_classes)
-        self._fc1_normalized = tf.layers.batch_normalization(self._fc1, training = self._is_training)
-        self._op = tf.nn.dropout(self._fc1_normalized, keep_prob = self._keep_prob_tensor)
+        self._op = tf.nn.dropout(self._fc1, keep_prob = self._keep_prob_tensor)
 
         self._op_prob = tf.nn.softmax(self._op, name = "prob")
 
@@ -171,11 +170,8 @@ class SimpleConvnet:
 
     # Predict:
     def predict(self, X):
-        with tf.Session() as sess:
-            with tf.device("/cpu:0"):
-                tf.global_variables_initializer().run()
-                ans = sess.run(self._op_prob, feed_dict = {self._X : X, self._is_training : False, self._keep_prob_tensor : 1.0})
-                return ans
+        ans = self._sess.run(self._op_prob, feed_dict = {self._X : X, self._is_training : False, self._keep_prob_tensor : 1.0})
+        return ans
 
     # Define layers and modules:
     def convolutional_layer(self, x, name, inp_channel, op_channel, kernel_size = 3, strides = 1, padding = 'VALID', pad = 1, dropout = False, not_activated = False):
